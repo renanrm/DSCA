@@ -1,7 +1,5 @@
 package DS.SmartHome.SecurityService;
 
-
-import DS.SmartHome.Server.GrpcServer;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Random;
@@ -46,8 +44,6 @@ public class SecurityService extends SecurityServiceGrpc.SecurityServiceImplBase
         responseObserver.onCompleted();
     }
 
-
-
     /*
 	 * Client streaming RPCs where the client writes a sequence of messages and sends them to the server,
 	 * again using a provided stream
@@ -77,6 +73,3 @@ public class SecurityService extends SecurityServiceGrpc.SecurityServiceImplBase
         };
     }
 }
-
-
-

@@ -16,6 +16,7 @@
 
 package DS.SmartHome.Server;
 
+import DS.SmartHome.SecurityService.SecurityService;
 import DS.SmartHome.ThermostatService.ThermostatService;
 import io.grpc.BindableService;
 import io.grpc.Grpc;
@@ -39,8 +40,8 @@ public class GrpcServer {
 	private void start() throws IOException, InterruptedException {
 		/* Grpc will find a suitable port to run the services (see "0" below) */
 		server = Grpc.newServerBuilderForPort(0, InsecureServerCredentials.create())
-				.addService((BindableService) new ThermostatService())
-//				.addService((BindableService) new MyService2Impl())
+				.addService((BindableService) new ThermostatService()) // unary API
+				.addService((BindableService) new SecurityService()) // client-stream and server-stream API
 //				.addService((BindableService) new MyService3Impl())
 				.build()
 				.start();
@@ -87,56 +88,8 @@ public class GrpcServer {
 
 
 
-//	static class MyService2Impl extends MyService2Grpc.MyService2ImplBase {
-//		/*
-//		 * Server streaming RPCs where the client sends a request to the server and gets a stream to
-//		 * read a sequence of messages back
-//		 * https://grpc.io/docs/what-is-grpc/core-concepts/
-//		 */
-//		public void function1Service2(MsgRequest req, StreamObserver<MsgReply> responseObserver) {
-//			logger.info("Calling gRPC server streaming type (from the server side)");
-//			MsgReply reply = MsgReply.newBuilder().setMessage(req.getMessage() + "(Streaming Server said: blah, blah)").build();
-//			responseObserver.onNext(reply);
+
 //
-//			// send a stream (aka: bunch of messages) back to the client
-//			for (int i=0; i<rand.nextInt(10); i++){
-//				reply = MsgReply.newBuilder().setMessage("(Streaming Server: and more blah, blah, blah)").build();
-//				responseObserver.onNext(reply);
-//			}
-//
-//			// no more messages
-//			responseObserver.onCompleted();
-//		}
-//
-//		/*
-//		 * Client streaming RPCs where the client writes a sequence of messages and sends them to the server,
-//		 * again using a provided stream
-//		 * https://grpc.io/docs/what-is-grpc/core-concepts/
-//		 */
-//		@Override
-//		public StreamObserver<MsgRequest> function2Service2(StreamObserver<MsgReply> responseObserver) {
-//			logger.info("Calling gRPC client streaming type (from the server side)");
-//			return new StreamObserver<MsgRequest>() {
-//
-//				@Override
-//				public void onNext(MsgRequest value) {
-//					System.out.println("Server received: " + value.getMessage());
-//				}
-//
-//				@Override
-//				public void onError(Throwable t) {
-//					t.printStackTrace();
-//				}
-//
-//				@Override
-//				public void onCompleted() {
-//					MsgReply reply = MsgReply.newBuilder().setMessage("(Stream completed)").build();
-//					responseObserver.onNext(reply);
-//					responseObserver.onCompleted();
-//				}
-//			};
-//		}
-//	}
 //
 //	static class MyService3Impl extends MyService3Grpc.MyService3ImplBase {
 //		/*

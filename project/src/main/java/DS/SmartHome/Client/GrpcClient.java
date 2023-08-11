@@ -1,17 +1,20 @@
 package DS.SmartHome.Client;
 
+import DS.SmartHome.SecurityService.*;
 import DS.SmartHome.Server.JmDnsServiceDiscovery;
 import DS.SmartHome.ThermostatService.Thermostat;
 import DS.SmartHome.ThermostatService.ThermostatReply;
 import DS.SmartHome.ThermostatService.ThermostatRequest;
 import DS.SmartHome.ThermostatService.ThermostatServiceGrpc;
 import io.grpc.*;
+import io.grpc.stub.StreamObserver;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -29,74 +32,25 @@ public class GrpcClient implements ActionListener {
 //	private JTextField entry4, reply4;
 
 	  private static final Logger logger = Logger.getLogger(GrpcClient.class.getName());
-	  private final ThermostatServiceGrpc.ThermostatServiceBlockingStub blockingStubThermostatService;
-//	  private final MyService2Grpc.MyService2BlockingStub blockingStubMyService2;
-//	  private final MyService2Grpc.MyService2Stub asyncService2Stub;
+	  private final ThermostatServiceGrpc.ThermostatServiceBlockingStub blockingStubThermostatService; // unary rpc
+	  private final SecurityServiceGrpc.SecurityServiceBlockingStub blockingStubSecurityService; // server-stream rpc
+	  private final SecurityServiceGrpc.SecurityServiceStub asyncSecurityServiceStub; // client-stream rpc
 //	  private final MyService3Grpc.MyService3Stub asyncService3Stub;
 	  static Random rand = new Random();
 
 	  /** Construct client for accessing HelloWorld server using the existing channel. */
 	  public GrpcClient(Channel channel) {
 	    // The sync calls (blocking)
-          blockingStubThermostatService = ThermostatServiceGrpc.newBlockingStub(channel);
-//	    blockingStubMyService2 = MyService2Grpc.newBlockingStub(channel);
+		  blockingStubThermostatService = ThermostatServiceGrpc.newBlockingStub(channel);
+		  blockingStubSecurityService = SecurityServiceGrpc.newBlockingStub(channel);
 //	    //MyService3Grpc.newBlockingStub(channel);
 //
-//	    asyncService2Stub = MyService2Grpc.newStub(channel);	// async calls (for client-streaming)
-//	    asyncService3Stub = MyService3Grpc.newStub(channel);	// async calls (for bidirectional streaming)
+	      asyncSecurityServiceStub = SecurityServiceGrpc.newStub(channel);	// async calls (for client-streaming)
+//	      asyncService3Stub = MyService3Grpc.newStub(channel);	// async calls (for bidirectional streaming)
 	  }
 
 
 
-//	  // Run function1Service2 from Service2 (Server streaming RPC)
-//	  public void clientSideFunction1Service2() {
-//		  logger.info("Calling gRPC server streaming type (from the client side)");
-//
-//		  try {
-//			  MsgRequest request = MsgRequest.newBuilder().setMessage("(Client said: How're you keeping?)").build();
-//			  Iterator<MsgReply> reply = blockingStubMyService2
-//					  .withDeadlineAfter(1, TimeUnit.SECONDS)
-//					  .function1Service2(request);
-//				while(reply.hasNext()) {
-//					System.out.println(reply.next());		// print all messages from the server
-//				}
-//			  logger.info("End of server streaming");
-//		  } catch (StatusRuntimeException e) {
-//			  logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-//			  return;
-//		  }
-//	  }
-//
-//	  // Run function2Service2 from Service2 (Client streaming RPC)
-//	  public void clientSideFunction2Service2() {
-//		  logger.info("Calling gRPC client streaming type (from the client side)");
-//
-//		  StreamObserver<MsgReply> responseObserver = new StreamObserver<MsgReply>() {
-//			  @Override
-//			  public void onNext(MsgReply value) {
-//				  System.out.println("Received: " + value.getMessage());
-//			  }
-//
-//			  @Override
-//			  public void onError(Throwable t) {
-//				  t.printStackTrace();
-//			  }
-//
-//			  @Override
-//			  public void onCompleted() {
-//				  System.out.println("Bye. Stream completed");
-//			  }
-//		  };
-//
-//		  // send a stream (aka: bunch of messages) back to the server
-//		  StreamObserver<MsgRequest> requestObserver = asyncService2Stub.function2Service2(responseObserver);
-//		  requestObserver.onNext(MsgRequest.newBuilder().setMessage("(Client said: How're you keeping?)").build());
-//		  for (int i=0; i<rand.nextInt(10); i++){
-//			  requestObserver.onNext(MsgRequest.newBuilder().setMessage("(Client said: blah, blah, blah)").build());
-//		  }
-//
-//		  requestObserver.onCompleted();
-//	  }
 //
 //	  // Run function1Service3 from Service3 (Bi-directional streaming RPC)
 //	  public void clientSideFunction1Service3() {
@@ -143,10 +97,11 @@ public class GrpcClient implements ActionListener {
 
 		  ManagedChannel channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
 				  .build();
-			  GrpcClient client = new GrpcClient(channel);
-			  client.build();			// unary type
-////			  client.clientSideFunction1Service2();			// server-streaming type
-////			  client.clientSideFunction2Service2();			// client-streaming type
+		  GrpcClient client = new GrpcClient(channel);
+		  client.build();			// unary type
+		  client.clientSideGetSecurityStatus();			// server-streaming type
+		  client.clientSidePerformSecurityProtocol();	// client-streaming type
+
 ////			  client.clientSideFunction1Service3();			// bi-directional streaming type
 	  }
 
@@ -171,7 +126,7 @@ public class GrpcClient implements ActionListener {
 
 	}
 
-	// Run function1Service1 from Service1 (Unary RPC)
+	// Run build from ThermostatService (Unary RPC)
 	private void build() {
 
 		JFrame frame = new JFrame("Service Controller Sample");
@@ -283,4 +238,68 @@ public class GrpcClient implements ActionListener {
 
 		}
 	}
+
+	// Run GetSecurityStatus from SecurityService (Server streaming RPC)
+	public void clientSideGetSecurityStatus(){
+		logger.info("Calling gRPC server streaming type (from the client side)");
+
+		try {
+			SecurityStatusRequest request = SecurityStatusRequest.newBuilder().setRun(true).build();
+
+			Iterator<SecurityStatusReply> reply = blockingStubSecurityService
+					.withDeadlineAfter(1, TimeUnit.SECONDS)
+					.getSecurityStatus(request);
+			while(reply.hasNext()) {
+				System.out.println(reply.next());		// print all messages from the server
+			}
+			logger.info("End of server streaming");
+		} catch (StatusRuntimeException e) {
+			logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+		}
+	}
+
+
+
+	  // Run performSecurityProtocol from SecurityService (Client streaming RPC)
+	  public void clientSidePerformSecurityProtocol() {
+		  logger.info("Calling gRPC client streaming type (from the client side)");
+
+		  StreamObserver<SecurityProtocolReply> responseObserver = new StreamObserver<SecurityProtocolReply>() {
+			  @Override
+			  public void onNext(SecurityProtocolReply value) {
+				  System.out.println("Received: " + value.getResult());
+			  }
+
+			  @Override
+			  public void onError(Throwable t) {
+				  logger.log(Level.SEVERE, "RPC failed: {0}", t.getMessage());
+			  }
+
+			  @Override
+			  public void onCompleted() {
+				  System.out.println("Stream completed");
+			  }
+		  };
+
+		  // send a stream (aka: bunch of messages) back to the server
+		  StreamObserver<SecurityProtocolRequest> requestObserver = asyncSecurityServiceStub.performSecurityProtocol(responseObserver);
+		  requestObserver.onNext(SecurityProtocolRequest.newBuilder().setSecurityProtocol(SecurityProtocol.newBuilder()
+																										  .setArmSystem(true)
+																										  .setLockAllDoors(true)
+																										  .build())
+																								  .build());
+		  for (int i=0; i<rand.nextInt(10); i++){
+			  requestObserver.onNext(SecurityProtocolRequest.newBuilder()
+														    .setSecurityProtocol(SecurityProtocol.newBuilder()
+																					  .setArmSystem(true)
+																					  .setLockAllDoors(true)
+																					  .setLockBackDoor(true)
+																					  .setLockFrontDoor(true)
+																					  .build())
+														    .build());
+		  }
+
+		  requestObserver.onCompleted();
+	  }
+
 }

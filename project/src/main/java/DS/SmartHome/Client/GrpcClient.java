@@ -6,6 +6,10 @@ import DS.SmartHome.ThermostatService.Thermostat;
 import DS.SmartHome.ThermostatService.ThermostatReply;
 import DS.SmartHome.ThermostatService.ThermostatRequest;
 import DS.SmartHome.ThermostatService.ThermostatServiceGrpc;
+import DS.SmartHome.WeatherService.WeatherReply;
+import DS.SmartHome.WeatherService.WeatherRequest;
+import DS.SmartHome.WeatherService.WeatherService;
+import DS.SmartHome.WeatherService.WeatherServiceGrpc;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 
@@ -34,6 +38,7 @@ public class GrpcClient implements ActionListener {
 	  private static final Logger logger = Logger.getLogger(GrpcClient.class.getName());
 	  private final ThermostatServiceGrpc.ThermostatServiceBlockingStub blockingStubThermostatService; // unary rpc
 	  private final SecurityServiceGrpc.SecurityServiceBlockingStub blockingStubSecurityService; // server-stream rpc
+	  private final WeatherServiceGrpc.WeatherServiceBlockingStub blockingStubWeatherService; // server-stream rpc
 	  private final SecurityServiceGrpc.SecurityServiceStub asyncSecurityServiceStub; // client-stream rpc
 //	  private final MyService3Grpc.MyService3Stub asyncService3Stub;
 	  static Random rand = new Random();
@@ -43,43 +48,12 @@ public class GrpcClient implements ActionListener {
 	    // The sync calls (blocking)
 		  blockingStubThermostatService = ThermostatServiceGrpc.newBlockingStub(channel);
 		  blockingStubSecurityService = SecurityServiceGrpc.newBlockingStub(channel);
-//	    //MyService3Grpc.newBlockingStub(channel);
-//
+		  blockingStubWeatherService = WeatherServiceGrpc.newBlockingStub(channel);
+
 	      asyncSecurityServiceStub = SecurityServiceGrpc.newStub(channel);	// async calls (for client-streaming)
-//	      asyncService3Stub = MyService3Grpc.newStub(channel);	// async calls (for bidirectional streaming)
+
 	  }
 
-
-
-//
-//	  // Run function1Service3 from Service3 (Bi-directional streaming RPC)
-//	  public void clientSideFunction1Service3() {
-//		  logger.info("Calling gRPC bi-directional streaming type (from the client side)");
-//		  StreamObserver<MsgRequest> requestObserver =
-//				  asyncService3Stub.function1Service3(new StreamObserver<MsgReply>() {
-//					@Override
-//					public void onNext(MsgReply value) {
-//						System.out.println("Bidi Client Received: " + value.getMessage());
-//					}
-//
-//					@Override
-//					public void onError(Throwable t) {
-//						t.printStackTrace();
-//					}
-//
-//					@Override
-//					public void onCompleted() {
-//						System.out.println("Bidi Client said: Bye. Stream completed");
-//					}
-//				  });
-//
-//		  requestObserver.onNext(MsgRequest.newBuilder().setMessage("(Bidi Client said: What's the craic?)").build());
-//		  for (int i=0; i<rand.nextInt(10); i++){
-//			  requestObserver.onNext(MsgRequest.newBuilder().setMessage("(Bidi Client said: blah, blah, blah)").build());
-//		  }
-//
-//		  requestObserver.onCompleted();
-//	  }
 
 	  /**
 	   *
@@ -101,8 +75,7 @@ public class GrpcClient implements ActionListener {
 		  client.build();			// unary type
 		  client.clientSideGetSecurityStatus();			// server-streaming type
 		  client.clientSidePerformSecurityProtocol();	// client-streaming type
-
-////			  client.clientSideFunction1Service3();			// bi-directional streaming type
+		  client.clientSideGetWeather();			// server-streaming type
 	  }
 
 	private JPanel getThermostatJPanel() {
@@ -182,60 +155,6 @@ public class GrpcClient implements ActionListener {
 
 			reply1.setText( String.valueOf(response.getThermostat()) );
 
-//		}else if (label.equals("Invoke Service 2")) {
-//			System.out.println("service 2 to be invoked ...");
-//
-//
-//			/*
-//			 *
-//			 */
-//			ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
-//			Service2Grpc.Service2BlockingStub blockingStub = Service2Grpc.newBlockingStub(channel);
-//
-//			//preparing message to send
-//			ds.service2.RequestMessage request = ds.service2.RequestMessage.newBuilder().setText(entry2.getText()).build();
-//
-//			//retreving reply from service
-//			ds.service2.ResponseMessage response = blockingStub.service2Do(request);
-//
-//			reply2.setText( String.valueOf( response.getLength()) );
-//
-//		}else if (label.equals("Invoke Service 3")) {
-//			System.out.println("service 3 to be invoked ...");
-//
-//
-//			/*
-//			 *
-//			 */
-//			ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50053).usePlaintext().build();
-//			Service3Grpc.Service3BlockingStub blockingStub = Service3Grpc.newBlockingStub(channel);
-//
-//			//preparing message to send
-//			ds.service3.RequestMessage request = ds.service3.RequestMessage.newBuilder().setText(entry3.getText()).build();
-//
-//			//retreving reply from service
-//			ds.service3.ResponseMessage response = blockingStub.service3Do(request);
-//
-//			reply3.setText( String.valueOf( response.getLength()) );
-//
-//		}else if (label.equals("Invoke Service 4")) {
-//			System.out.println("service 4 to be invoked ...");
-//
-//
-//			/*
-//			 *
-//			 */
-//			ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50054).usePlaintext().build();
-//			Service4Grpc.Service4BlockingStub blockingStub = Service4Grpc.newBlockingStub(channel);
-//
-//			//preparing message to send
-//			ds.service4.RequestMessage request = ds.service4.RequestMessage.newBuilder().setText(entry4.getText()).build();
-//
-//			//retreving reply from service
-//			ds.service4.ResponseMessage response = blockingStub.service4Do(request);
-//
-//			reply4.setText( String.valueOf( response.getLength()) );
-
 		}
 	}
 
@@ -249,6 +168,24 @@ public class GrpcClient implements ActionListener {
 			Iterator<SecurityStatusReply> reply = blockingStubSecurityService
 					.withDeadlineAfter(1, TimeUnit.SECONDS)
 					.getSecurityStatus(request);
+			while(reply.hasNext()) {
+				System.out.println(reply.next());		// print all messages from the server
+			}
+			logger.info("End of server streaming");
+		} catch (StatusRuntimeException e) {
+			logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+		}
+	}
+
+	public void clientSideGetWeather(){
+		logger.info("Calling gRPC server streaming type (from the client side)");
+
+		try {
+			WeatherRequest request = WeatherRequest.newBuilder().setRun(true).build();
+
+			Iterator<WeatherReply> reply = blockingStubWeatherService
+					.withDeadlineAfter(1, TimeUnit.SECONDS)
+					.getWeather(request);
 			while(reply.hasNext()) {
 				System.out.println(reply.next());		// print all messages from the server
 			}

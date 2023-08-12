@@ -18,6 +18,7 @@ package DS.SmartHome.Server;
 
 import DS.SmartHome.SecurityService.SecurityService;
 import DS.SmartHome.ThermostatService.ThermostatService;
+import DS.SmartHome.WeatherService.WeatherService;
 import io.grpc.BindableService;
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
@@ -42,7 +43,7 @@ public class GrpcServer {
 		server = Grpc.newServerBuilderForPort(0, InsecureServerCredentials.create())
 				.addService((BindableService) new ThermostatService()) // unary API
 				.addService((BindableService) new SecurityService()) // client-stream and server-stream API
-//				.addService((BindableService) new MyService3Impl())
+				.addService((BindableService) new WeatherService()) // server-stream API
 				.build()
 				.start();
 		JmDnsServiceRegistration.register("_gRPCserver._tcp.local.", server.getPort());
@@ -86,38 +87,4 @@ public class GrpcServer {
 		server.blockUntilShutdown();
 	}
 
-
-
-
-//
-//
-//	static class MyService3Impl extends MyService3Grpc.MyService3ImplBase {
-//		/*
-//		 * Bidirectional streaming RPCs where both sides send a sequence of messages using a read-write stream
-//		 * https://grpc.io/docs/what-is-grpc/core-concepts/
-//		 */
-//		public StreamObserver<MsgRequest> function1Service3(StreamObserver<MsgReply> responseObserver) {
-//			logger.info("Calling gRPC bi-directional streaming type (from the server side)");
-//			return new StreamObserver<MsgRequest>() {
-//				@Override
-//				public void onNext(MsgRequest value) {
-//					System.out.println("(Bi-di Server Received: " + value.getMessage() + ")");
-//					MsgReply reply = MsgReply.newBuilder().setMessage("(Bi-di Server said: blah, blah, blah)").build();
-//					responseObserver.onNext(reply);
-//					reply = MsgReply.newBuilder().setMessage("(Bi-di Server said: blah, blah, blah)").build();
-//					responseObserver.onNext(reply);
-//				}
-//
-//				@Override
-//				public void onError(Throwable t) {
-//					t.printStackTrace();
-//				}
-//
-//				@Override
-//				public void onCompleted() {
-//					responseObserver.onCompleted();
-//				}
-//			};
-//		}
-//	}
 }

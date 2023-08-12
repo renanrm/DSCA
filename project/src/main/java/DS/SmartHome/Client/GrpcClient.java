@@ -31,16 +31,12 @@ import java.util.logging.Logger;
 public class GrpcClient implements ActionListener {
 
 	private JTextField reply1;
-//	private JTextField entry2, reply2;
-//	private JTextField entry3, reply3;
-//	private JTextField entry4, reply4;
 
 	  private static final Logger logger = Logger.getLogger(GrpcClient.class.getName());
 	  private final ThermostatServiceGrpc.ThermostatServiceBlockingStub blockingStubThermostatService; // unary rpc
 	  private final SecurityServiceGrpc.SecurityServiceBlockingStub blockingStubSecurityService; // server-stream rpc
 	  private final WeatherServiceGrpc.WeatherServiceBlockingStub blockingStubWeatherService; // server-stream rpc
 	  private final SecurityServiceGrpc.SecurityServiceStub asyncSecurityServiceStub; // client-stream rpc
-//	  private final MyService3Grpc.MyService3Stub asyncService3Stub;
 	  static Random rand = new Random();
 
 	  /** Construct client for accessing HelloWorld server using the existing channel. */
@@ -54,14 +50,10 @@ public class GrpcClient implements ActionListener {
 
 	  }
 
-
-	  /**
-	   *
-	   */
 	  public static void main(String[] args) throws Exception {
 		  String target;
 
-		  // Service discovery part (Where's the gRPC server running?)
+		  // Service discovery part
 		  JmDnsServiceDiscovery jmDnsServiceDiscovery = new JmDnsServiceDiscovery();
 		  JmDnsServiceDiscovery.find("_gRPCserver._tcp.local.");	// service name
 		  do {
@@ -117,9 +109,6 @@ public class GrpcClient implements ActionListener {
 		panel.setBorder(new EmptyBorder(new Insets(50, 100, 50, 100)));
 
 		panel.add( getThermostatJPanel() );
-//		panel.add( getService2JPanel() );
-//		panel.add( getService3JPanel() );
-//		panel.add( getService4JPanel() );
 
 		// Set size for the frame
 		frame.setSize(300, 300);
@@ -138,19 +127,14 @@ public class GrpcClient implements ActionListener {
 		if (label.equals("Invoke Thermostat")) {
 			System.out.println("Thermostat to be invoked ...");
 
-
-			/*
-			 *
-			 */
-
-			//preparing message to send
+			// preparing message to send
 			ThermostatRequest entry1 = ThermostatRequest.newBuilder().setThermostat(Thermostat.newBuilder()
 							.setTemperature("")
 							.setHumidity("")
 							.build())
 					.build();
 
-			//retreving reply from service
+			// retrieving reply from service
 			ThermostatReply response = blockingStubThermostatService.getThermostat(entry1);
 
 			reply1.setText( String.valueOf(response.getThermostat()) );
@@ -158,7 +142,7 @@ public class GrpcClient implements ActionListener {
 		}
 	}
 
-	// Run GetSecurityStatus from SecurityService (Server streaming RPC)
+	// run GetSecurityStatus from SecurityService (Server streaming RPC)
 	public void clientSideGetSecurityStatus(){
 		logger.info("Calling gRPC server streaming type (from the client side)");
 
@@ -195,9 +179,7 @@ public class GrpcClient implements ActionListener {
 		}
 	}
 
-
-
-	  // Run performSecurityProtocol from SecurityService (Client streaming RPC)
+	  // run performSecurityProtocol from SecurityService (Client streaming RPC)
 	  public void clientSidePerformSecurityProtocol() {
 		  logger.info("Calling gRPC client streaming type (from the client side)");
 
@@ -218,7 +200,7 @@ public class GrpcClient implements ActionListener {
 			  }
 		  };
 
-		  // send a stream (aka: bunch of messages) back to the server
+		  // send a stream of messages back to the server
 		  StreamObserver<SecurityProtocolRequest> requestObserver = asyncSecurityServiceStub.performSecurityProtocol(responseObserver);
 		  requestObserver.onNext(SecurityProtocolRequest.newBuilder().setSecurityProtocol(SecurityProtocol.newBuilder()
 																										  .setArmSystem(true)

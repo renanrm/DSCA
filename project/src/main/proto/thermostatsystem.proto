@@ -24,41 +24,22 @@ package ThermostatService;
 // Reference https://grpc.io/docs/what-is-grpc/core-concepts/
 
 service ThermostatService {
-	// Unary RPCs where the client sends a single request to
-	// the server and gets a single response back, just like
-	// a normal function call.
+	// unary rpc
 	rpc getThermostat (ThermostatRequest) returns (ThermostatReply) {}
 }
 
-//service MyService2 {
-//	// Server streaming RPCs where the client sends a request
-//	// to the server and gets a stream to read a sequence of
-//	// messages back
-//	rpc function1Service2 (MsgRequest) returns (stream MsgReply) {}
-//
-// 	// Client streaming RPCs where the client writes a sequence
-// 	// of messages and sends them to the server
-// 	rpc function2Service2 (stream MsgRequest) returns (MsgReply) {}
-//}
-//
-//service MyService3 {
-//	// Bidirectional streaming RPCs where both sides send a
-//	// sequence of messages using a read-write stream
-//	rpc function1Service3 (stream MsgRequest) returns (stream MsgReply) {}
-//}
-
-// The request message containing the user's name.
+// status of the thermostat system
 message Thermostat {
 	string temperature = 1;
 	string humidity = 2;
 }
 
-// The request message containing the user's name.
+// request message for thermostat
 message ThermostatRequest {
   	Thermostat thermostat = 1;
 }
 
-// The response message containing the greetings
+// response message for thermostat
 message ThermostatReply {
 	Thermostat thermostat = 1;
 }

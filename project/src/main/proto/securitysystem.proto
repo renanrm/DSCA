@@ -24,12 +24,11 @@ package SecurityService;
 // Reference https://grpc.io/docs/what-is-grpc/core-concepts/
 
 service SecurityService {
-		// Client streaming RPCs where the client writes a sequence
-		// 	of messages and sends them to the server
+	// client streaming rpc
 	rpc performSecurityProtocol (stream SecurityProtocolRequest) returns (SecurityProtocolReply) {} //client manda trancar tudo
+	// server streaming rpc
 	rpc getSecurityStatus (SecurityStatusRequest) returns (stream SecurityStatusReply) {} // recebe o status de seguranca da casa
 }
-
 
 // status of the home security system
 message SecuritySystemStatus {
@@ -46,22 +45,22 @@ message SecurityProtocol {
 	bool arm_system = 4;
 }
 
-// The request message containing status of the home security system
+// request message containing status of the home security system
 message SecurityStatusRequest {
 	bool run = 1;
 }
 
-// The response message containing status of the home security system
+// response message containing status of the home security system
 message SecurityStatusReply {
 	SecuritySystemStatus securitySystemStatus = 1;
 }
 
-// The request message containing the protocol to lock doors and arm system
+// request message containing protocol to lock doors and arm system
 message SecurityProtocolRequest {
 	SecurityProtocol securityProtocol = 1;
 }
 
-// The response message containing protocol to lock doors and arm system
+// response message containing protocol to lock doors and arm system
 message SecurityProtocolReply {
 	string result = 1;
 }

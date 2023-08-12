@@ -28,7 +28,6 @@ service WeatherService {
   rpc getWeather (WeatherRequest) returns (stream WeatherReply) {}
 }
 
-
 // status of the weather forecast
 message WeatherForecast {
   string temperature = 1;
@@ -36,13 +35,12 @@ message WeatherForecast {
   string rain_chance = 3;
 }
 
-// The request message of the weather forecast
+// request message of the weather forecast
 message WeatherRequest {
   bool run = 1;
 }
 
-// The response message of the weather forecast
+// response message of the weather forecast
 message WeatherReply {
   WeatherForecast weatherForecast = 1;
 }
-

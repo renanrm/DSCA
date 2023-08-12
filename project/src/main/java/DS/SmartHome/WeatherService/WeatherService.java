@@ -9,12 +9,7 @@ public class WeatherService extends WeatherServiceGrpc.WeatherServiceImplBase {
     private static final Logger logger = Logger.getLogger(WeatherService.class.getName());
     static Random rand = new Random();
 
-    /*
-     * Server streaming RPCs where the client sends a request to the server and gets a stream to
-     * read a sequence of messages back
-     * https://grpc.io/docs/what-is-grpc/core-concepts/
-     */
-
+    // server streaming rpc
     @Override
     public void getWeather(WeatherRequest req, StreamObserver<WeatherReply> responseObserver)  {
         logger.info("Calling gRPC server streaming type (from the server side)");
@@ -26,7 +21,7 @@ public class WeatherService extends WeatherServiceGrpc.WeatherServiceImplBase {
                                                                                 .build();
         responseObserver.onNext(reply);
 
-        // send a stream (aka: bunch of messages) back to the client
+        // send a stream of messages to the client
         for (int i = 0; i < rand.nextInt(10); i++) {
             reply = WeatherReply.newBuilder().setWeatherForecast(WeatherForecast.newBuilder()
                             .setHumidity(String.valueOf(new Random().nextInt(60 - 30 + 1) + 30) + "%")

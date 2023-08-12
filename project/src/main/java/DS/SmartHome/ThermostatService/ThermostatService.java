@@ -8,11 +8,8 @@ import java.util.logging.Logger;
 
 public class ThermostatService extends ThermostatServiceGrpc.ThermostatServiceImplBase {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
-    /*
-     * Unary RPCs where the client sends a single request to the server and gets a single response back
-     * https://grpc.io/docs/what-is-grpc/core-concepts/
-     */
 
+    // unary rpc
     @Override
     public void getThermostat(ThermostatRequest req, StreamObserver<ThermostatReply> responseObserver) {
         logger.info("Calling gRPC unary type (from the server side)");

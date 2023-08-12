@@ -94,7 +94,7 @@ public class GrpcClient implements ActionListener {
 	// Run build from ThermostatService (Unary RPC)
 	private void build() {
 
-		JFrame frame = new JFrame("Service Controller Sample");
+		JFrame frame = new JFrame("Smart Home Controller");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Set the panel to add buttons
